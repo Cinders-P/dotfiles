@@ -1,0 +1,207 @@
+#!/bin/bash
+set -eu -o pipefail -o errtrace # fail fast
+
+# completions stored in:
+# ~/.local/share/bash-completion/completions/
+# ~/.local/share/zsh/completions/ (not /usr/local/share/zsh/site-functions/)
+
+# Simple install for a fresh box
+
+# Extend sudo timeout from default 15 minutes to 60 minutes
+if [[ ! -f /etc/sudoers.d/timeout ]]; then
+    echo "Defaults timestamp_timeout=60" | sudo tee /etc/sudoers.d/timeout > /dev/null
+    sudo chmod 440 /etc/sudoers.d/timeout
+    sudo visudo -c -q
+fi
+
+
+### VIM SECTION ###
+
+echo "Setting up vim..."
+mkdir -p ~/.vim/pack/plugins/start
+
+# commentary.vim - adds motions for commenting lines
+if [[ ! -d ~/.vim/pack/plugins/start/commentary ]]; then
+    git clone https://tpope.io/vim/commentary.git ~/.vim/pack/plugins/start/commentary
+    vim -u NONE -c "helptags ~/.vim/pack/plugins/start/commentary/doc" -c q
+fi
+
+# vim-signature - shows marks in the gutter
+if [[ ! -d ~/.vim/pack/plugins/start/vim-signature ]]; then
+    git clone https://github.com/kshenoy/vim-signature.git ~/.vim/pack/plugins/start/vim-signature
+    vim -u NONE -c "helptags ~/.vim/pack/plugins/start/vim-signature/doc" -c q
+fi
+
+# fzf.vim - open files with fuzzy finder
+if [[ ! -d ~/.fzf ]]; then
+    git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+    ~/.fzf/install --all
+fi
+
+if [[ ! -d ~/.vim/pack/plugins/start/fzf.vim ]]; then
+    git clone https://github.com/junegunn/fzf.vim.git ~/.vim/pack/plugins/start/fzf.vim
+    vim -u NONE -c "helptags ~/.vim/pack/plugins/start/fzf.vim/doc" -c q
+fi
+
+# Create a symlink to the main fzf installation
+ln -sf ~/.fzf ~/.vim/pack/plugins/start/fzf
+
+# if bat is installed as 'batcat', create symlink to alias
+sudo apt install -y bat ripgrep silversearcher-ag universal-ctags perl
+if command -v batcat &> /dev/null && ! command -v bat &> /dev/null; then
+    mkdir -p ~/.local/bin
+    ln -sf /usr/bin/batcat ~/.local/bin/bat
+fi
+
+### SHELL SECTION ###
+
+echo "Setting up shell..."
+
+# bash-completion
+sudo apt install -y bash-completion zsh git keychain
+mkdir -p ~/.local/share/bash-completion/completions
+mkdir -p ~/.local/share/zsh/completions
+
+# Starship
+curl -sS https://starship.rs/install.sh | sh -s -- -y --bin-dir ~/.local/bin
+
+# zsh-autosuggestions
+if [[ ! -d ~/.zsh/zsh-autosuggestions ]]; then
+    git clone https://github.com/zsh-users/zsh-autosuggestions ~/.zsh/zsh-autosuggestions
+fi
+
+# zsh-syntax-highlighting
+if [[ ! -d ~/.zsh/zsh-syntax-highlighting ]]; then
+    git clone https://github.com/zsh-users/zsh-syntax-highlighting.git ~/.zsh/zsh-syntax-highlighting
+fi
+
+
+### OTHER TOOLS ###
+
+sudo apt install -y python3 python3-pip pipx fd-find jq keychain shellcheck libwayland-client0
+pipx install tldr # similarly, curl cheat.sh/ip
+pipx ensurepath
+
+# uv package manager for python
+curl -sSfL https://astral.sh/uv/install.sh | sh
+
+# fd has a naming conflict on Ubuntu, override
+#echo "alias fd='fdfind'" | tee -a ~/.bashrc ~/.zshrc
+
+# zoxide - autojump to directories
+curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
+
+# duckDB
+curl https://install.duckdb.org | sh -s -- -y
+
+# mise-en-place
+curl https://mise.run | sh -s -- -y
+
+# Add ~/.local/bin to PATH for current session to call mise
+export PATH="$HOME/.local/bin:$PATH"
+eval "$(mise activate bash)"
+
+# usage is needed to generate the completions
+mise install usage
+mise use -g usage
+mise completion bash --include-bash-completion-lib > ~/.local/share/bash-completion/completions/mise
+mise completion zsh > ~/.local/share/zsh/completions/_mise # underscore important for zsh
+
+mise install fastfetch
+mise use -g fastfetch
+
+# quicksilver (qsv), dependent on wayland-client0
+mise install qsv
+mise use -g qsv
+
+curl -sSLO https://raw.githubusercontent.com/dathere/qsv/refs/heads/master/contrib/completions/examples/qsv.bash
+curl -sSLO https://raw.githubusercontent.com/dathere/qsv/refs/heads/master/contrib/completions/examples/qsv.zsh
+mv qsv.bash ~/.local/share/bash-completion/completions/
+mv qsv.zsh ~/.local/share/zsh/completions/_qsv.zsh
+
+### CONFIGS SECTION ###
+
+echo "Linking dotfiles..."
+( # change shopt in subshell to avoid affecting current session
+    shopt -s dotglob
+    for file in configs/*; do
+        [[ -f "$file" ]] || continue # skip dirs
+        [[ "$(basename "$file")" == ".ssh" ]] && continue # skip .ssh
+
+        ln -sf "$(pwd)/$file" ~/"$(basename "$file")"
+        echo "  ✓ $(basename "$file")"
+    done
+)
+# fastfetch config
+mkdir -p ~/.config/fastfetch
+ln -sf "$(pwd)/fastfetch.jsonc" ~/.config/fastfetch/config.jsonc
+touch ~/.profile ~/.zprofile
+grep -q '^fastfetch$' ~/.profile || echo 'fastfetch' >> ~/.profile
+grep -q '^fastfetch$' ~/.zprofile || echo 'fastfetch' >> ~/.zprofile
+
+# Starship config
+ln -sf "$(pwd)/starship.toml" ~/.config/
+
+sudo apt update && sudo apt upgrade -y
+sudo apt autoremove -y
+
+### GIT CONFIGURATION ###
+
+echo "Configuring Git..."
+
+git config --global core.editor "vim"
+git config --global init.defaultBranch main
+git config --global push.default simple # only push current branch to upstream
+git config --global diff.colorMoved zebra # show colored diffs
+git config --global color.ui true # show colors in git
+
+git config --global alias.st status
+git config --global alias.co checkout
+git config --global alias.br branch
+git config --global alias.ci commit
+git config --global alias.unstage 'reset HEAD --'
+git config --global alias.last 'log -1 HEAD'
+git config --global alias.lg "log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit"
+
+echo "Git configured! Set your name and email with:"
+echo "  git config --global user.name 'Your Name'"
+echo "  git config --global user.email 'your.email@example.com'"
+
+### SSH SETUP ###
+echo "Setting up SSH..."
+mkdir -p ~/.ssh/sockets
+chmod 700 ~/.ssh
+ln -sf "$(pwd)/configs/.ssh" ~/.ssh/config
+chmod 600 ~/.ssh/config
+echo "SSH directory and config created."
+
+# Examples
+
+# ssh-keygen -t ed25519 -C "your.email@example.com"
+# Press Enter to accept default location (~/.ssh/id_ed25519)
+# Enter a passphrase when prompted
+
+# cat ~/.ssh/id_ed25519.pub
+# Copy the output and paste it into GitHub:
+# Settings → SSH and GPG keys → New SSH key
+
+# ssh -T git@github.com
+# Should see: "Hi username! You've successfully authenticated..."
+
+# On a server, add it to authorized_keys
+# ssh-copy-id username@remote_host
+# ssh-copy-id -i path/to/certificate username@remote_host
+
+# or manually without ssh-copy-id...
+# cat ~/.ssh/id_ed25519.pub
+# echo "ssh-ed25519 AAAAC3... your.email@example.com" >> ~/.ssh/authorized_keys
+# chmod 600 ~/.ssh/authorized_keys
+
+# Forwarding local keys, -A flag
+# ssh -A user@host-ip
+
+# Proxy jump to access private servers, -J flag
+# ssh -J user@jumpbox user@target
+
+echo "Done!"
+echo "Restart your session with 'exec $(basename $SHELL)' to apply changes."

@@ -1,0 +1,28 @@
+# SSH client configuration
+
+Host *
+    # Connection multiplexing - reuse existing connections for speed
+    ControlMaster auto
+    ControlPath ~/.ssh/sockets/%r@%h:%p
+    ControlPersist 10m
+    
+    # Keep connections alive to prevent timeout
+    ServerAliveInterval 60
+    ServerAliveCountMax 3
+    
+    # Automatically add keys to ssh-agent when used
+    AddKeysToAgent yes
+    
+    # Security: Don't forward agent by default (enable per-host if needed)
+    ForwardAgent no
+
+    # Security: Prefer modern host key algorithms
+    HostKeyAlgorithms ssh-ed25519,rsa-sha2-512,rsa-sha2-256
+
+# Example host configuration
+# Host myvps
+#     HostName 192.168.1.100
+#     User yourusername
+#     Port 22
+#     ForwardAgent yes
+#     IdentityFile ~/.ssh/id_ed25519

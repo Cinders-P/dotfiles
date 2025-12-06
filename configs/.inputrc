@@ -1,0 +1,32 @@
+# Up/Down arrow: search history for commands starting with current prefix
+"\e[A": history-search-backward
+"\e[B": history-search-forward
+
+# Cycle through completions instead of listing and stopping
+set show-all-if-ambiguous on
+set menu-complete-display-prefix on
+set colored-stats on
+set mark-symlinked-directories on
+
+# Use Tab to cycle forward, Shift-Tab to cycle backward
+Tab: menu-complete
+"\e[Z": reverse-menu-complete
+
+# Skip need to tab twice
+set completion-ignore-case on
+set show-all-if-unmodified on
+set visible-stats on
+set page-completions off
+
+# Treat hyphens and underscores as equal when completing
+set completion-map-case on
+
+# Allow partial word completion
+set skip-completed-text on
+
+# Enable enhanced completion matching (bash 5+)
+set enable-bracketed-paste on
+set enable-meta-key on
+
+# Allow substring completion (bash 5.2+)
+set completion-prefix-display-length 3

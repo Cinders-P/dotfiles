@@ -1,0 +1,40 @@
+{
+  "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/master/doc/json_schema.json",
+  "modules": [
+    "break",
+    "break",
+    "title",
+    "separator",
+    "os",
+    "host",
+    "uptime",
+    "shell",
+    "wmtheme",
+    "theme",
+    "font",
+    "cursor",
+    "terminal",
+    "terminalfont",
+    "cpu",
+    "gpu",
+    "memory",
+    "localip",
+    "battery",
+    "poweradapter",
+    "break",
+    "colors",
+    "break",
+    "break"
+  ],
+  "logo": {
+    "type": "raw",
+    "source": "~/dotfiles/img/small-lain.sixel",
+    "width": 30,
+    "height": 15,
+    "padding": {
+      "top": 4,
+      "left": 6,
+      "right": 2
+    }
+  }
+}
