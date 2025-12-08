@@ -99,25 +99,23 @@ curl https://mise.run | sh -s -- -y
 
 # Add ~/.local/bin to PATH for current session to call mise
 export PATH="$HOME/.local/bin:$PATH"
-eval "$(mise activate bash)"
 
 # usage is needed to generate the completions
-mise install usage
 mise use -g usage
 mise completion bash --include-bash-completion-lib > ~/.local/share/bash-completion/completions/mise
 mise completion zsh > ~/.local/share/zsh/completions/_mise # underscore important for zsh
 
-mise install fastfetch
 mise use -g fastfetch
 
 # quicksilver (qsv), dependent on wayland-client0
-mise install qsv
 mise use -g qsv
+curl -sSL https://raw.githubusercontent.com/dathere/qsv/refs/heads/master/contrib/completions/examples/qsv.bash -o ~/.local/share/bash-completion/completions/qsv
+curl -sSL https://raw.githubusercontent.com/dathere/qsv/refs/heads/master/contrib/completions/examples/qsv.zsh -o ~/.local/share/zsh/completions/_qsv
 
-curl -sSLO https://raw.githubusercontent.com/dathere/qsv/refs/heads/master/contrib/completions/examples/qsv.bash
-curl -sSLO https://raw.githubusercontent.com/dathere/qsv/refs/heads/master/contrib/completions/examples/qsv.zsh
-mv qsv.bash ~/.local/share/bash-completion/completions/
-mv qsv.zsh ~/.local/share/zsh/completions/_qsv.zsh
+mise use -g node
+eval "$(mise activate bash)" # register new binaries to use npm
+npm completion > ~/.local/share/bash-completion/completions/npm
+npm completion > ~/.local/share/zsh/completions/_npm
 
 ### CONFIGS SECTION ###
 
@@ -205,3 +203,5 @@ echo "SSH directory and config created."
 
 echo "Done!"
 echo "Restart your session with 'exec $(basename $SHELL)' to apply changes."
+echo "You will need to install Docker and its completions manually."
+echo "See https://docs.docker.com/engine/install/ubuntu and https://docs.docker.com/engine/cli/completion/ for instructions."

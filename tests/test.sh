@@ -1,10 +1,12 @@
 #!/bin/bash
 # Test script to run setup.sh in a fresh Ubuntu container
 
+DOTFILES_ROOT="$(realpath "$(dirname "$0")/..")"
+
 echo "🐳 Starting fresh Ubuntu container..."
 
 docker run -it --rm \
-  -v "$(realpath ..):/home/ubuntu/dotfiles" \
+  -v "$DOTFILES_ROOT:/home/ubuntu/dotfiles" \
   -w /home/ubuntu/dotfiles \
   ubuntu:latest bash tests/test-input.sh
 
