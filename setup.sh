@@ -78,13 +78,14 @@ fi
 
 ### OTHER TOOLS ###
 
-sudo apt install -y python3 python3-pip pipx fd-find jq keychain shellcheck libwayland-client0
-pipx install tldr # similarly, curl cheat.sh/ip
-pipx ensurepath
+# mise-en-place
+curl https://mise.run | sh -s -- -y
 
-# uv package manager for python
-curl -sSfL https://astral.sh/uv/install.sh | sh
+# Add ~/.local/bin to PATH for current session to call mise
+export PATH="$HOME/.local/bin:$PATH"
+mise use -g python pipx uv
 
+sudo apt install -y fd-find jq keychain shellcheck libwayland-client0
 # fd has a naming conflict on Ubuntu, override
 #echo "alias fd='fdfind'" | tee -a ~/.bashrc ~/.zshrc
 
@@ -93,12 +94,6 @@ curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh 
 
 # duckDB
 curl https://install.duckdb.org | sh -s -- -y
-
-# mise-en-place
-curl https://mise.run | sh -s -- -y
-
-# Add ~/.local/bin to PATH for current session to call mise
-export PATH="$HOME/.local/bin:$PATH"
 
 # usage is needed to generate the completions
 mise use -g usage
@@ -116,6 +111,15 @@ mise use -g node
 eval "$(mise activate bash)" # register new binaries to use npm
 npm completion > ~/.local/share/bash-completion/completions/npm
 npm completion > ~/.local/share/zsh/completions/_npm
+pip completion --bash > ~/.local/share/bash-completion/completions/pip
+pip completion --zsh > ~/.local/share/zsh/completions/_pip
+
+pipx install tldr # similarly, curl cheat.sh/ip
+pipx install argcomplete
+register-python-argcomplete pipx | tee ~/.local/share/bash-completion/completions/pipx ~/.local/share/zsh/completions/_pipx > /dev/null
+
+uv generate-shell-completion bash > ~/.local/share/bash-completion/completions/uv
+uv generate-shell-completion zsh > ~/.local/share/zsh/completions/_uv
 
 ### CONFIGS SECTION ###
 
