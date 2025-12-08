@@ -105,3 +105,6 @@ highlight Normal ctermbg=NONE guibg=NONE " set background to transparent
 
 " when reading these files, set vim filetype automatically
 autocmd BufRead,BufNewFile ~/.aliases,~/.exports setfiletype sh
+
+" prefer 2 space indentataion for specific file types
+autocmd FileType sh,bash,html,xml,css,sass,scss,json,lua,javascript,typescript setlocal tabstop=2 softtabstop=2 shiftwidth=2 expandtab
