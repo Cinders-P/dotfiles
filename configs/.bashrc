@@ -32,7 +32,7 @@ shopt -s checkjobs
 
 # This shares history betwen shells, but only syncs when the a new prompt is calculated
 shopt -s histappend
-export HISTCONTROL=ignoredups:ignorespace
+export HISTCONTROL=""
 export HISTSIZE=20000                          
 export HISTFILESIZE=20000
 PROMPT_COMMAND="history -a; history -n;$PROMPT_COMMAND"

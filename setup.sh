@@ -58,7 +58,7 @@ fi
 echo "Setting up shell..."
 
 # bash-completion
-sudo apt install -y bash-completion zsh git keychain
+sudo apt install -y bash-completion zsh git keychain tmux
 mkdir -p ~/.local/share/bash-completion/completions
 mkdir -p ~/.local/share/zsh/completions
 
@@ -89,6 +89,10 @@ sudo apt install -y fd-find jq keychain shellcheck libwayland-client0
 # fd has a naming conflict on Ubuntu, override
 #echo "alias fd='fdfind'" | tee -a ~/.bashrc ~/.zshrc
 
+# general build tools for 'make'
+sudo apt install -y autoconf automake pkg-config yacc build-essential libevent-dev libncurses-dev
+curl -fSsL "https://raw.githubusercontent.com/imomaliev/tmux-bash-completion/master/completions/tmux" > ~/.local/share/bash-completion/completions/tmux
+
 # zoxide - autojump to directories
 curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
 
@@ -104,8 +108,8 @@ mise use -g fastfetch
 
 # quicksilver (qsv), dependent on wayland-client0
 mise use -g qsv
-curl -sSL https://raw.githubusercontent.com/dathere/qsv/refs/heads/master/contrib/completions/examples/qsv.bash -o ~/.local/share/bash-completion/completions/qsv
-curl -sSL https://raw.githubusercontent.com/dathere/qsv/refs/heads/master/contrib/completions/examples/qsv.zsh -o ~/.local/share/zsh/completions/_qsv
+curl -sSL https://raw.githubusercontent.com/dathere/qsv/refs/heads/master/contrib/completions/examples/qsv.bash > ~/.local/share/bash-completion/completions/qsv
+curl -sSL https://raw.githubusercontent.com/dathere/qsv/refs/heads/master/contrib/completions/examples/qsv.zsh > ~/.local/share/zsh/completions/_qsv
 
 mise use -g node
 eval "$(mise activate bash)" # register new binaries to use npm
@@ -137,9 +141,6 @@ echo "Linking dotfiles..."
 # fastfetch config
 mkdir -p ~/.config/fastfetch
 ln -sf "$(pwd)/fastfetch.jsonc" ~/.config/fastfetch/config.jsonc
-touch ~/.profile ~/.zprofile
-grep -q '^fastfetch$' ~/.profile || echo 'fastfetch' >> ~/.profile
-grep -q '^fastfetch$' ~/.zprofile || echo 'fastfetch' >> ~/.zprofile
 
 # Starship config
 ln -sf "$(pwd)/starship.toml" ~/.config/
