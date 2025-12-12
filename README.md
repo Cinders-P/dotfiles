@@ -25,6 +25,7 @@ Installs:
     - commentary
     - vim-signature
 - .bashrc, .vimrc, .inputrc, .zshrc, .ssh/config, starship.toml, fastfetch.jsonc files
+- backup: ~/.claude/statusline.sh
 - bonus: cartograph cf and monolisa nerd fonts
     - enable 'ss02' stylistic set in ligature settings, for script characters
 
