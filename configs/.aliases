@@ -12,7 +12,35 @@ alias wpaste='powershell.exe -Command "Get-Clipboard" >'
 alias fd='fdfind'
 alias cc='xclip -selection c'
 
-alias zj='zi ""'
+alias win-ip='ip route show | grep -i default | awk '\''{ print $3}'\'
+
+# Windows clipboard to WSL clipboard bridge
+imgclip() {
+    # Kill any existing xclip processes serving clipboard images
+    pkill -f "xclip.*image/png" 2>/dev/null
+
+    # Try to get image from Windows clipboard
+    powershell.exe -command "Add-Type -AssemblyName System.Windows.Forms; Add-Type -AssemblyName System.Drawing; if ([System.Windows.Forms.Clipboard]::ContainsImage()) { try { \$img = [System.Windows.Forms.Clipboard]::GetImage(); \$img.Save('/tmp/clipboard.png', [System.Drawing.Imaging.ImageFormat]::Png); exit 0 } catch { exit 1 } } else { exit 1 }" 2>/dev/null
+
+    if [ -f /tmp/clipboard.png ]; then
+        # Start xclip in background to serve the clipboard
+        # The loop keeps it alive and serving clipboard requests
+        (nohup xclip -selection clipboard -t image/png -i /tmp/clipboard.png -loops 0 > /dev/null 2>&1 &)
+        echo "✓ Image synced to Linux clipboard (ready for paste)"
+        return 0
+    else
+        # Try text instead
+        TEXT=$(powershell.exe -command "Get-Clipboard" 2>/dev/null | sed 's/\r$//')
+        if [ -n "$TEXT" ]; then
+            echo "$TEXT" | xclip -selection clipboard
+            echo "✓ Text synced to Linux clipboard"
+            return 0
+        else
+            echo "✗ No clipboard content found in Windows clipboard"
+            return 1
+        fi
+    fi
+}
 
 # Enable colors for ls
 if [ -x /usr/bin/dircolors ]; then

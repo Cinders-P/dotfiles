@@ -21,10 +21,11 @@ set -euo pipefail
 # - Date: Current day and time context
 #
 # TECHNICAL:
-# - Context percentage: Parses transcript file to get current context window usage from most recent message
-#   (total_input_tokens from Claude is cumulative, doesn't reset after /clear, causing >100% issue)
-# - Cost: Extracts real cost from Claude Code's cost.total_cost_usd field (actual billing data)
-# - Transcript: Claude provides transcript_path, we parse last 20 lines for most recent usage data
+# - Context percentage: Uses current_usage field from Claude Code (v2.0.70+) for accurate context tracking
+#   Falls back to total_tokens if current_usage is null (new sessions)
+# - Cost: Uses real cost from Claude Code's cost.total_cost_usd field (actual billing data)
+#   Shows $0.000 if cost data not yet available (new sessions)
+# - current_usage provides: input_tokens + cache_creation_input_tokens + cache_read_input_tokens
 # - Context percentage accurately reflects when to clear/compact, cost shows actual billing
 
 input=$(cat)
@@ -35,7 +36,7 @@ OUTPUT_TOKENS=$(echo "$input" | jq -r '.context_window.total_output_tokens')
 CONTEXT_SIZE=$(echo "$input" | jq -r '.context_window.context_window_size')
 MODEL=$(echo "$input" | jq -r '.model.display_name')
 REAL_COST=$(echo "$input" | jq -r '.cost.total_cost_usd // empty')
-TRANSCRIPT_PATH=$(echo "$input" | jq -r '.transcript_path')
+CURRENT_USAGE=$(echo "$input" | jq -c '.context_window.current_usage // null')
 
 # Color definitions
 readonly COLOR_RESET='\033[0m'
@@ -51,8 +52,6 @@ readonly -a COLOR_BAR_FILL=(
 
 # Constants
 readonly BAR_WIDTH=12
-readonly PRICE_INPUT=3
-readonly PRICE_OUTPUT=15
 
 # Format number with K/M suffixes
 format_number() {
@@ -66,20 +65,20 @@ format_number() {
     fi
 }
 
-# Get current context tokens from transcript
+# Get current context tokens from current_usage field
 get_current_context_tokens() {
-    local total_tokens=$1
+    local current_usage=$1
+    local total_tokens=$2
 
-    [[ ! -f "$TRANSCRIPT_PATH" || ! -s "$TRANSCRIPT_PATH" ]] && return
+    # If current_usage is null or empty, fall back to total tokens (session just started)
+    if [[ "$current_usage" == "null" || -z "$current_usage" ]]; then
+        echo "$total_tokens"
+        return
+    fi
 
+    # Calculate current context: input_tokens + cache tokens
     local context_tokens
-    context_tokens=$(tail -n 20 "$TRANSCRIPT_PATH" |
-        jq -r 'select(.type == "assistant" or .type == "user") |
-                select(.message?.usage?.input_tokens) |
-                .message.usage |
-                (.input_tokens // 0) +
-                ((.cache_read_input_tokens // 0) + (.cache_creation_input_tokens // 0))' |
-        tail -n 1)
+    context_tokens=$(echo "$current_usage" | jq '(.input_tokens // 0) + (.cache_creation_input_tokens // 0) + (.cache_read_input_tokens // 0)')
 
     # Validate result is numeric
     [[ "$context_tokens" =~ ^[0-9]+$ ]] && echo "$context_tokens" || echo "$total_tokens"
@@ -122,15 +121,14 @@ format_cost() {
 
 # Main calculations
 TOTAL_TOKENS=$((INPUT_TOKENS + OUTPUT_TOKENS))
-CURRENT_CONTEXT_TOKENS=$(get_current_context_tokens "$TOTAL_TOKENS")
+CURRENT_CONTEXT_TOKENS=$(get_current_context_tokens "$CURRENT_USAGE" "$TOTAL_TOKENS")
 PERCENT_USED=$((CURRENT_CONTEXT_TOKENS * 100 / CONTEXT_SIZE))
 
-# Determine cost (real or estimated)
-if [[ "$REAL_COST" != "null" && "$REAL_COST" != "" && "$REAL_COST" != "0" ]]; then
+# Use real cost from Claude Code, default to 0 if not available
+if [[ "$REAL_COST" != "null" && "$REAL_COST" != "" ]]; then
     COST=$REAL_COST
 else
-    # Estimated cost for new sessions
-    COST=$(echo "scale=6; ($INPUT_TOKENS * $PRICE_INPUT + $OUTPUT_TOKENS * $PRICE_OUTPUT) / 1000000" | bc -l)
+    COST=0
 fi
 
 # Format all components
