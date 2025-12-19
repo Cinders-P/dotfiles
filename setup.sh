@@ -8,7 +8,8 @@ set -eu -o pipefail -o errtrace # fail fast
 # Simple install for a fresh box
 export DEBIAN_FRONTEND=noninteractive
 sudo -E apt update
-sudo -E apt install -y curl git ca-certificates wget build-essential perl vim shellcheck
+sudo -E apt install -y curl git ca-certificates wget build-essential perl vim shellcheck apt-utils dialog
+sudo -E apt install -y autoconf automake pkg-config yacc build-essential libevent-dev libncurses-dev libncurses5-dev libpcre3-dev zlib1g-dev liblzma-dev file
 
 git config --global http.postBuffer 1048576000
 git config --global http.maxRequestBuffer 100M
@@ -58,11 +59,16 @@ ln -sf ~/.fzf ~/.vim/pack/plugins/start/fzf
 echo "Setting up shell..."
 
 # bash-completion
-sudo apt install -y bash-completion zsh libpcre3-dev
-sudo apt install -y keychain 2>/dev/null || echo "  ⚠ Skipping keychain (not available in this repository)"
+mkdir -p ~/.local/bin
 mkdir -p ~/.local/share/bash-completion/completions
 mkdir -p ~/.local/share/zsh/completions
-mkdir -p ~/.local/bin
+sudo apt install -y bash-completion zsh tmux keychain
+sudo apt install -y ripgrep fd-find silversearcher-ag jq bat
+# if bat is installed as 'batcat', create symlink to alias
+if command -v batcat &> /dev/null && ! command -v bat &> /dev/null; then
+    mkdir -p ~/.local/bin
+    ln -sf /usr/bin/batcat ~/.local/bin/bat
+fi
 
 # Starship
 if ! command -v starship &> /dev/null; then
@@ -91,10 +97,6 @@ fi
 export PATH="$HOME/.local/bin:$PATH"
 mise use -g python pipx uv
 
-# general build tools for 'make'
-sudo apt install -y autoconf automake pkg-config yacc build-essential libevent-dev libncurses-dev libpcre3-dev zlib1g-dev liblzma-dev file
-curl -fSsL "https://raw.githubusercontent.com/imomaliev/tmux-bash-completion/master/completions/tmux" > ~/.local/share/bash-completion/completions/tmux
-
 # zoxide - autojump to directories
 mise use -g zoxide
 
@@ -104,13 +106,6 @@ mise completion bash --include-bash-completion-lib > ~/.local/share/bash-complet
 mise completion zsh > ~/.local/share/zsh/completions/_mise # underscore important for zsh
 
 mise use -g fastfetch
-
-mise use -g tmux ripgrep fd ag jq tmux bat 
-# if bat is installed as 'batcat', create symlink to alias
-if command -v batcat &> /dev/null && ! command -v bat &> /dev/null; then
-    mkdir -p ~/.local/bin
-    ln -sf /usr/bin/batcat ~/.local/bin/bat
-fi
 # fd has a naming conflict on Ubuntu, override
 #echo "alias fd='fdfind'" | tee -a ~/.bashrc ~/.zshrc
 
