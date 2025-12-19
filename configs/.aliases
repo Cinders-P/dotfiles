@@ -12,10 +12,14 @@ alias wpaste='powershell.exe -Command "Get-Clipboard" >'
 alias fd='fdfind'
 alias cc='xclip -selection c'
 
+alias cld='claude --permission-mode bypassPermissions'
 alias win-ip='ip route show | grep -i default | awk '\''{ print $3}'\'
 
 # Windows clipboard to WSL clipboard bridge
 imgclip() {
+    command -v powershell.exe >/dev/null 2>&1 || { echo "powershell.exe not found - not in WSL"; return 1; }
+    command -v xclip >/dev/null 2>&1 || { echo "xclip not installed"; return 1; }
+
     # Kill any existing xclip processes serving clipboard images
     pkill -f "xclip.*image/png" 2>/dev/null
 

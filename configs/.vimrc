@@ -78,10 +78,12 @@ set linebreak
 set clipboard=unnamedplus
 let mapleader=" " 
 
-" WSL2 Bindings
-nnoremap <leader>Y :%w !clip.exe<CR> " yank file into windows
-vnoremap <leader>y :w !clip.exe<CR> " yank visual selection into windows
-nnoremap <leader>p :r !powershell.exe Get-Clipboard<CR> " paste from windows
+" WSL2 Bindings (only in WSL)
+if executable('clip.exe') && executable('powershell.exe')
+  nnoremap <leader>Y :%w !clip.exe<CR> " yank file into windows
+  vnoremap <leader>y :w !clip.exe<CR> " yank visual selection into windows
+  nnoremap <leader>p :r !powershell.exe Get-Clipboard<CR> " paste from windows
+endif
 " if these don't work, restart WSL2
 " wsl --shutdown
 " wsl -d <distro>

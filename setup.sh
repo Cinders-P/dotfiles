@@ -22,7 +22,7 @@ mkdir -p ~/.vim/pack/plugins/start
 
 # commentary.vim - adds motions for commenting lines
 if [[ ! -d ~/.vim/pack/plugins/start/commentary ]]; then
-    git clone https://tpope.io/vim/commentary.git ~/.vim/pack/plugins/start/commentary
+    git clone https://github.com/tpope/vim-commentary.git ~/.vim/pack/plugins/start/commentary
     vim -u NONE -c "helptags ~/.vim/pack/plugins/start/commentary/doc" -c q
 fi
 
@@ -47,6 +47,7 @@ fi
 ln -sf ~/.fzf ~/.vim/pack/plugins/start/fzf
 
 # if bat is installed as 'batcat', create symlink to alias
+sudo apt update
 sudo apt install -y bat ripgrep silversearcher-ag universal-ctags perl
 if command -v batcat &> /dev/null && ! command -v bat &> /dev/null; then
     mkdir -p ~/.local/bin

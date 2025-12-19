@@ -51,13 +51,13 @@ setopt check_jobs           # warn about suspended jobs before exiting
 # ─────────────────────────────────────────────────────────────────────────────
 # Plugins
 # ─────────────────────────────────────────────────────────────────────────────
-source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
-source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-source <(fzf --zsh)
+[ -f ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh ] && source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
+[ -f ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ] && source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+command -v fzf >/dev/null 2>&1 && source <(fzf --zsh)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Tool Initialization
 # ─────────────────────────────────────────────────────────────────────────────
-eval "$(zoxide init zsh)"
-eval "$(mise activate zsh)"
-eval "$(starship init zsh)"
+command -v zoxide >/dev/null 2>&1 && eval "$(zoxide init zsh)"
+command -v mise >/dev/null 2>&1 && eval "$(mise activate zsh)"
+command -v starship >/dev/null 2>&1 && eval "$(starship init zsh)"
