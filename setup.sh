@@ -6,8 +6,13 @@ set -eu -o pipefail -o errtrace # fail fast
 # ~/.local/share/zsh/completions/ (not /usr/local/share/zsh/site-functions/)
 
 # Simple install for a fresh box
-sudo apt update
-sudo apt install -y curl git ca-certificates wget build-essential perl vim shellcheck
+export DEBIAN_FRONTEND=noninteractive
+sudo -E apt update
+sudo -E apt install -y curl git ca-certificates wget build-essential perl vim shellcheck
+
+git config --global http.postBuffer 1048576000
+git config --global http.maxRequestBuffer 100M
+git config --global core.compression 0
 
 # Extend sudo timeout from default 15 minutes to 60 minutes
 if [[ ! -f /etc/sudoers.d/timeout ]]; then
@@ -35,8 +40,8 @@ if [[ ! -d ~/.vim/pack/plugins/start/vim-signature ]]; then
 fi
 
 # fzf.vim - open files with fuzzy finder
-if [[ ! -d ~/.fzf ]]; then
-    git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
+if [[ ! -d ~/.fzf ]] && ! command -v fzf &> /dev/null; then
+    git clone https://github.com/junegunn/fzf.git ~/.fzf
     ~/.fzf/install --all
 fi
 
@@ -53,14 +58,16 @@ ln -sf ~/.fzf ~/.vim/pack/plugins/start/fzf
 echo "Setting up shell..."
 
 # bash-completion
-sudo apt install -y bash-completion zsh
+sudo apt install -y bash-completion zsh libpcre3-dev
 sudo apt install -y keychain 2>/dev/null || echo "  ⚠ Skipping keychain (not available in this repository)"
 mkdir -p ~/.local/share/bash-completion/completions
 mkdir -p ~/.local/share/zsh/completions
+mkdir -p ~/.local/bin
 
 # Starship
-mkdir -p ~/.local/bin
-curl -sS https://starship.rs/install.sh | sh -s -- -y --bin-dir ~/.local/bin
+if ! command -v starship &> /dev/null; then
+    curl -sS https://starship.rs/install.sh | sh -s -- -y --bin-dir ~/.local/bin
+fi
 
 # zsh-autosuggestions
 if [[ ! -d ~/.zsh/zsh-autosuggestions ]]; then
@@ -76,23 +83,20 @@ fi
 ### OTHER TOOLS ###
 
 # mise-en-place
-curl https://mise.run | sh -s -- -y
+if ! command -v mise &> /dev/null; then
+    curl https://mise.run | sh -s -- -y
+fi
 
 # Add ~/.local/bin to PATH for current session to call mise
 export PATH="$HOME/.local/bin:$PATH"
 mise use -g python pipx uv
 
-sudo apt install -y libwayland-client0 2>/dev/null || echo "  ⚠ Skipping libwayland-client0 (not available in this repository)"
-
 # general build tools for 'make'
-sudo apt install -y autoconf automake pkg-config yacc build-essential libevent-dev libncurses-dev
+sudo apt install -y autoconf automake pkg-config yacc build-essential libevent-dev libncurses-dev libpcre3-dev zlib1g-dev liblzma-dev file
 curl -fSsL "https://raw.githubusercontent.com/imomaliev/tmux-bash-completion/master/completions/tmux" > ~/.local/share/bash-completion/completions/tmux
 
 # zoxide - autojump to directories
-curl -sSfL https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | sh
-
-# duckDB
-curl https://install.duckdb.org | sh -s -- -y
+mise use -g zoxide
 
 # usage is needed to generate the completions
 mise use -g usage
@@ -100,11 +104,6 @@ mise completion bash --include-bash-completion-lib > ~/.local/share/bash-complet
 mise completion zsh > ~/.local/share/zsh/completions/_mise # underscore important for zsh
 
 mise use -g fastfetch
-
-# quicksilver (qsv), dependent on wayland-client0
-mise use -g qsv
-curl -sSL https://raw.githubusercontent.com/dathere/qsv/refs/heads/master/contrib/completions/examples/qsv.bash > ~/.local/share/bash-completion/completions/qsv
-curl -sSL https://raw.githubusercontent.com/dathere/qsv/refs/heads/master/contrib/completions/examples/qsv.zsh > ~/.local/share/zsh/completions/_qsv
 
 mise use -g tmux ripgrep fd ag jq tmux bat 
 # if bat is installed as 'batcat', create symlink to alias
