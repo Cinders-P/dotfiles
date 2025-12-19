@@ -6,6 +6,8 @@ set -eu -o pipefail -o errtrace # fail fast
 # ~/.local/share/zsh/completions/ (not /usr/local/share/zsh/site-functions/)
 
 # Simple install for a fresh box
+sudo apt update
+sudo apt install -y curl git ca-certificates wget build-essential perl vim shellcheck
 
 # Extend sudo timeout from default 15 minutes to 60 minutes
 if [[ ! -f /etc/sudoers.d/timeout ]]; then
@@ -22,7 +24,7 @@ mkdir -p ~/.vim/pack/plugins/start
 
 # commentary.vim - adds motions for commenting lines
 if [[ ! -d ~/.vim/pack/plugins/start/commentary ]]; then
-    git clone https://github.com/tpope/vim-commentary.git ~/.vim/pack/plugins/start/commentary
+    git clone https://tpope.io/vim/commentary.git ~/.vim/pack/plugins/start/commentary
     vim -u NONE -c "helptags ~/.vim/pack/plugins/start/commentary/doc" -c q
 fi
 
@@ -46,24 +48,18 @@ fi
 # Create a symlink to the main fzf installation
 ln -sf ~/.fzf ~/.vim/pack/plugins/start/fzf
 
-# if bat is installed as 'batcat', create symlink to alias
-sudo apt update
-sudo apt install -y bat ripgrep silversearcher-ag universal-ctags perl
-if command -v batcat &> /dev/null && ! command -v bat &> /dev/null; then
-    mkdir -p ~/.local/bin
-    ln -sf /usr/bin/batcat ~/.local/bin/bat
-fi
-
 ### SHELL SECTION ###
 
 echo "Setting up shell..."
 
 # bash-completion
-sudo apt install -y bash-completion zsh git keychain tmux
+sudo apt install -y bash-completion zsh
+sudo apt install -y keychain 2>/dev/null || echo "  ⚠ Skipping keychain (not available in this repository)"
 mkdir -p ~/.local/share/bash-completion/completions
 mkdir -p ~/.local/share/zsh/completions
 
 # Starship
+mkdir -p ~/.local/bin
 curl -sS https://starship.rs/install.sh | sh -s -- -y --bin-dir ~/.local/bin
 
 # zsh-autosuggestions
@@ -86,9 +82,7 @@ curl https://mise.run | sh -s -- -y
 export PATH="$HOME/.local/bin:$PATH"
 mise use -g python pipx uv
 
-sudo apt install -y fd-find jq keychain shellcheck libwayland-client0
-# fd has a naming conflict on Ubuntu, override
-#echo "alias fd='fdfind'" | tee -a ~/.bashrc ~/.zshrc
+sudo apt install -y libwayland-client0 2>/dev/null || echo "  ⚠ Skipping libwayland-client0 (not available in this repository)"
 
 # general build tools for 'make'
 sudo apt install -y autoconf automake pkg-config yacc build-essential libevent-dev libncurses-dev
@@ -111,6 +105,15 @@ mise use -g fastfetch
 mise use -g qsv
 curl -sSL https://raw.githubusercontent.com/dathere/qsv/refs/heads/master/contrib/completions/examples/qsv.bash > ~/.local/share/bash-completion/completions/qsv
 curl -sSL https://raw.githubusercontent.com/dathere/qsv/refs/heads/master/contrib/completions/examples/qsv.zsh > ~/.local/share/zsh/completions/_qsv
+
+mise use -g tmux ripgrep fd ag jq tmux bat 
+# if bat is installed as 'batcat', create symlink to alias
+if command -v batcat &> /dev/null && ! command -v bat &> /dev/null; then
+    mkdir -p ~/.local/bin
+    ln -sf /usr/bin/batcat ~/.local/bin/bat
+fi
+# fd has a naming conflict on Ubuntu, override
+#echo "alias fd='fdfind'" | tee -a ~/.bashrc ~/.zshrc
 
 mise use -g node
 eval "$(mise activate bash)" # register new binaries to use npm
