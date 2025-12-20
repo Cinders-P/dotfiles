@@ -9,7 +9,7 @@ set -eu -o pipefail -o errtrace # fail fast
 export DEBIAN_FRONTEND=noninteractive
 sudo -E apt update
 sudo -E apt install -y curl git ca-certificates wget build-essential perl vim shellcheck apt-utils dialog
-sudo -E apt install -y autoconf automake pkg-config yacc build-essential libevent-dev libncurses-dev libncurses5-dev libpcre3-dev zlib1g-dev liblzma-dev file
+sudo -E apt install -y autoconf automake pkg-config yacc build-essential libevent-dev libncurses5-dev libpcre3-dev zlib1g-dev liblzma-dev file
 
 git config --global http.postBuffer 1048576000
 git config --global http.maxRequestBuffer 100M
@@ -19,7 +19,7 @@ git config --global core.compression 0
 if [[ ! -f /etc/sudoers.d/timeout ]]; then
     echo "Defaults timestamp_timeout=60" | sudo tee /etc/sudoers.d/timeout > /dev/null
     sudo chmod 440 /etc/sudoers.d/timeout
-    sudo visudo -c -q
+    sudo visudo -c
 fi
 
 
@@ -41,8 +41,10 @@ if [[ ! -d ~/.vim/pack/plugins/start/vim-signature ]]; then
 fi
 
 # fzf.vim - open files with fuzzy finder
-git clone https://github.com/junegunn/fzf.git ~/.fzf
-~/.fzf/install --all
+if [[ ! -d ~/.fzf ]]; then
+    git clone https://github.com/junegunn/fzf.git ~/.fzf
+    ~/.fzf/install --all
+fi
 
 if [[ ! -d ~/.vim/pack/plugins/start/fzf.vim ]]; then
     git clone https://github.com/junegunn/fzf.vim.git ~/.vim/pack/plugins/start/fzf.vim

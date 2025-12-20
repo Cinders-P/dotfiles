@@ -11,7 +11,12 @@ done
 export PATH
 export EDITOR=vim
 export VISUAL=vim
-export MISE_YES=1
+
+# dev containers
+export LANGUAGE=C.UTF-8 # set a default locale for perl
+export LANG=C.UTF-8
+export LC_ALL=C.UTF-8
+export MISE_TRUSTED_CONFIG_PATHS="/workspace"
 
 # silent failure if key doesn't exist
 command -v keychain >/dev/null 2>&1 && eval "$(keychain --eval --quiet ~/.ssh/id_ed25519 2>/dev/null || true)"
