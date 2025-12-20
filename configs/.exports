@@ -1,6 +1,17 @@
-# python packages and duckdb added to path
-export PATH="$HOME/.local/bin:$HOME/.duckdb/cli/latest:$HOME/.maestro/bin:$PATH"
+path_dirs=(
+    "$HOME/.fzf/bin"
+    "$HOME/.local/bin"
+    "$HOME/.duckdb/cli/latest"
+    "$HOME/.maestro/bin"
+)
+
+for dir in "${path_dirs[@]}"; do
+    [[ -d "$dir" ]] && PATH="$dir:$PATH"
+done
+export PATH
 export EDITOR=vim
+export VISUAL=vim
+export MISE_YES=1
 
 # silent failure if key doesn't exist
 command -v keychain >/dev/null 2>&1 && eval "$(keychain --eval --quiet ~/.ssh/id_ed25519 2>/dev/null || true)"

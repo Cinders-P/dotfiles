@@ -41,10 +41,8 @@ if [[ ! -d ~/.vim/pack/plugins/start/vim-signature ]]; then
 fi
 
 # fzf.vim - open files with fuzzy finder
-if [[ ! -d ~/.fzf ]] && ! command -v fzf &> /dev/null; then
-    git clone https://github.com/junegunn/fzf.git ~/.fzf
-    ~/.fzf/install --all
-fi
+git clone https://github.com/junegunn/fzf.git ~/.fzf
+~/.fzf/install --all
 
 if [[ ! -d ~/.vim/pack/plugins/start/fzf.vim ]]; then
     git clone https://github.com/junegunn/fzf.vim.git ~/.vim/pack/plugins/start/fzf.vim

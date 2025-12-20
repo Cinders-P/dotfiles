@@ -32,8 +32,6 @@ SAVEHIST=20000
 setopt append_history       # append to history file instead of overwriting
 setopt inc_append_history   # write to history immediately, not on shell exit
 setopt share_history        # share history between all sessions
-setopt hist_ignore_dups     # ignore consecutive duplicate commands
-setopt hist_ignore_space    # ignore commands starting with a space
 setopt hist_reduce_blanks   # remove extra blanks from commands
 setopt bang_hist            # allow ! to be used in history expansion
 
