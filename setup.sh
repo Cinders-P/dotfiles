@@ -64,6 +64,7 @@ mkdir -p ~/.local/share/bash-completion/completions
 mkdir -p ~/.local/share/zsh/completions
 sudo apt install -y bash-completion zsh tmux keychain
 sudo apt install -y ripgrep fd-find silversearcher-ag jq bat
+curl https://raw.githubusercontent.com/imomaliev/tmux-bash-completion/master/completions/tmux > ~/.local/share/bash-completion/completions/tmux
 # if bat is installed as 'batcat', create symlink to alias
 if command -v batcat &> /dev/null && ! command -v bat &> /dev/null; then
     mkdir -p ~/.local/bin
